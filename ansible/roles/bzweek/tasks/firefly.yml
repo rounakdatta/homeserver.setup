@@ -1,0 +1,74 @@
+---
+vars:
+  nginx_config_path: "/etc/nginx/sites-enabled"
+  firefly_install_path: "/var/www/html"
+
+- name: Install essential dependencies
+  apt:
+    pkg:
+      curl
+      software-properties-common
+      php7.4
+      php7.4-{cli,zip,gd,fpm,json,common,mysql,zip,mbstring,curl,xml,bcmath,imap,ldap,intl}
+      mariadb-server
+      mariadb-client
+      nginx
+    update_cache: yes
+
+- name: Configure PHP per-process memory limit to 512M
+  replace: dest=/etc/php/7.4/fpm/php.ini regexp='^memory_limit = .*$' replace='memory_limit = 512M'
+  notify:
+    - restart php-fpm
+    - stop apache2
+
+- name: Trash default nginx config
+  shell: "mv {{ nginx_config_path }}/default /tmp/"
+
+- name: Generate firefly nginx config
+  template:
+    src: /templates/firefly.conf.j2
+    dest: "{{ nginx_config_path }}/firefly.conf"
+  notify:
+    - restart nginx
+    - restart php-fpm
+
+- name: Install composer
+  block:
+    - name: Obtain setup script
+      shell: "curl -sS https://getcomposer.org/installer -o composer-setup.php"
+      args:
+        chdir: /tmp
+
+    - name: Run composer setup
+      shell: "sudo php composer-setup.php --install-dir=/usr/local/bin --filename=composer"
+      args:
+        chdir: /tmp
+
+- name: Install firefly-iii composer image
+  block:
+    - name: Create composer project
+      shell: "composer create-project grumpydictator/firefly-iii --no-dev --prefer-dist firefly-iii 5.5.13"
+      args:
+        chdir: "{{ firefly_install_path }}"
+
+    - name: Set environment variables
+      replace: dest=".env" regexp="{{ item.value.regex }}" replace="{{ item.value.actual }}"
+      with_items:
+        - { regex: "^DB_HOST=.*$", actual: "DB_HOST=localhost" }
+        - { regex: "^DB_DATABASE=.*$", actual: "DB_DATABASE=localhost" }
+        - { regex: "^DB_USERNAME=.*$", actual: "DB_USERNAME=localhost" }
+        - { regex: "^DB_PASSWORD=.*$", actual: "DB_PASSWORD=localhost" }
+      args:
+        chdir: "{{ firefly_install_path }}/firefly-iii"
+
+    - name: Housekeeping & migrations
+      shell: "{{ item }}"
+      with_items:
+        - "php artisan migrate:refresh --seed"
+        - "php artisan firefly-iii:upgrade-database"
+        - "php artisan passport:install"
+      args:
+        chdir: "{{ firefly_install_path }}/firefly-iii"
+      notify:
+        - restart nginx
+        - restart php-fpm

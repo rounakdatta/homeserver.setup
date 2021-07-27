@@ -1,0 +1,9 @@
+---
+- name: restart php-fpm
+  shell: service php7.4-fpm restart
+
+- name: restart nginx
+  shell: service nginx restart
+
+- name: stop apache2
+  shell: service apache2 stop
