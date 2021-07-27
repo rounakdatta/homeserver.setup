@@ -1,0 +1,4 @@
+---
+nginx_config_path: "/etc/nginx/sites-enabled"
+firefly_install_path: "/var/www/html"
+

@@ -1,5 +1,7 @@
 ---
 - hosts: unix
+  vars_files:
+          - config.yml
   roles:
     - role: setup-firefly
       tags:
