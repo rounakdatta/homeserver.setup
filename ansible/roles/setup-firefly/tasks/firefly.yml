@@ -1,7 +1,11 @@
 ---
-vars:
-  nginx_config_path: "/etc/nginx/sites-enabled"
-  firefly_install_path: "/var/www/html"
+- vars:
+    nginx_config_path: "/etc/nginx/sites-enabled"
+    firefly_install_path: "/var/www/html"
+
+- name: Update apt cache
+  apt:
+    update_cache: yes
 
 - name: Install essential dependencies
   apt:
@@ -13,7 +17,6 @@ vars:
       mariadb-server
       mariadb-client
       nginx
-    update_cache: yes
 
 - name: Configure PHP per-process memory limit to 512M
   replace: dest=/etc/php/7.4/fpm/php.ini regexp='^memory_limit = .*$' replace='memory_limit = 512M'
