@@ -1,0 +1,10 @@
+---
+- hosts: all
+  roles:
+    - role: bootstrap-node
+      tags:
+        - bootstrap
+
+    - role: setup-firefly
+      tags:
+        - personal
