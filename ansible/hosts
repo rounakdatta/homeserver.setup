@@ -1,3 +1,6 @@
+[local]
+localhost ansible_connection=local
+
 [bzweek-root]
 personal2
 

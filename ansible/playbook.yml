@@ -1,5 +1,15 @@
 ---
-- hosts: all
+
+- name: Set up pre-prequisites
+  hosts: local
+  roles:
+    - role: prepare-local
+      tags:
+        - backup
+        - personal
+
+- name: Set up firefly on bzweek
+  hosts: bzweek-root
   vars_files:
           - config.yml
   roles:

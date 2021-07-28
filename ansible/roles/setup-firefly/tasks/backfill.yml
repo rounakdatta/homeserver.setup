@@ -1,0 +1,15 @@
+---
+
+- name: Copy from local to remote host
+  ansible.builtin.copy:
+    src: "/tmp/backup.sql"
+    dest: "/tmp/backup.sql"
+
+- name: Restore database from backup
+  community.mysql.mysql_db:
+    check_implicit_admin: yes
+    login_user: "{{ FireflyUsernameDefault }}"
+    login_password: "{{ FireflyPasswordDefault }}"
+    name: firefly
+    state: import
+    target: "/tmp/backup.sql"

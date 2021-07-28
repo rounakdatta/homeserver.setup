@@ -132,3 +132,6 @@
       notify:
         - restart nginx
         - restart php-fpm
+
+    - name: Backfill previous data
+      include: backfill.yml

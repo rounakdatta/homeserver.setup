@@ -1,0 +1,4 @@
+---
+
+- name: Prepare MySQL backup
+  include: mysql.yml
