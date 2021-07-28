@@ -1,2 +1,5 @@
-[unix]
-localhost ansible_connection=local
+[bzweek-root]
+personal2
+
+[bzweek-root:vars]
+ansible_ssh_user=root

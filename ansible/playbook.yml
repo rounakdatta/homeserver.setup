@@ -1,5 +1,5 @@
 ---
-- hosts: unix
+- hosts: all
   vars_files:
           - config.yml
   roles:

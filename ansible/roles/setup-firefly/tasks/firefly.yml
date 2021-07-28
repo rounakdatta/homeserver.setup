@@ -8,12 +8,33 @@
   apt:
     pkg:
     - curl
+    - software-properties-common
+    - php7.4
+    - php7.4-cli
+    - php7.4-zip
     - php7.4-gd
     - php7.4-fpm
+    - php7.4-json
+    - php7.4-common
+    - php7.4-mysql
+    - php7.4-zip
+    - php7.4-mbstring
+    - php7.4-curl
+    - php7.4-xml
+    - php7.4-bcmath
+    - php7.4-imap
+    - php7.4-ldap
+    - php7.4-intl
+    - mariadb-server
+    - mariadb-client
+    - nginx
     state: present
 
 - name: Configure PHP per-process memory limit to 512M
-  replace: dest=/etc/php/7.4/fpm/php.ini regexp='^memory_limit = .*$' replace='memory_limit = 512M'
+  lineinfile:
+    dest: "/etc/php/7.4/fpm/php.ini"
+    regexp: "^memory_limit = .*$"
+    line: "memory_limit = 512M"
   notify:
     - restart php-fpm
     - stop apache2
@@ -51,14 +72,24 @@
       ignore_errors: true
 
     - name: Set environment variables
-      replace: dest=".env" regexp="{{ item.value.regex }}" replace="{{ item.value.actual }}"
+      vars: 
+        FireflyHost: "{{ lookup('community.general.passwordstore', 'firefly' + '/DB_HOST', errors='ignore') }}"
+        FireflyDatabase: "{{ lookup('community.general.passwordstore', 'firefly' + '/DB_DATABASE', errors='ignore') }}"
+        FireflyUsername: "{{ lookup('community.general.passwordstore', 'firefly' + '/DB_USERNAME', errors='ignore') }}"
+        FireflyPassword: "{{ lookup('community.general.passwordstore', 'firefly' + '/DB_PASSWORD', errors='ignore') }}"
+      lineinfile:
+        dest: "{{ firefly_install_path }}/firefly-iii/.env"
+        regexp: "{{ item.regex }}"
+        line: "{{ item.actual }}"
       with_items:
-        - { regex: "^DB_HOST=.*$", actual: "DB_HOST=localhost" }
-        - { regex: "^DB_DATABASE=.*$", actual: "DB_DATABASE=localhost" }
-        - { regex: "^DB_USERNAME=.*$", actual: "DB_USERNAME=localhost" }
-        - { regex: "^DB_PASSWORD=.*$", actual: "DB_PASSWORD=localhost" }
-      args:
-        chdir: "{{ firefly_install_path }}/firefly-iii"
+        - regex: "^DB_HOST=.*$"
+          actual: "DB_HOST={{ FireflyHost }}"
+        - regex: "^DB_DATABASE=.*$"
+          actual: "DB_DATABASE={{ FireflyDatabase }}"
+        - regex: "^DB_USERNAME=.*$"
+          actual: "DB_USERNAME={{ FireflyUsername }}"
+        - regex: "^DB_PASSWORD=.*$"
+          actual: "DB_PASSWORD={{ FireflyPassword }}"
 
     - name: Housekeeping & migrations
       shell: "{{ item }}"

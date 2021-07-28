@@ -1,9 +1,15 @@
 ---
 - name: restart php-fpm
-  shell: service php7.4-fpm restart
+  service:
+    name: php7.4-fpm
+    state: restarted
 
 - name: restart nginx
-  shell: service nginx restart
+  service:
+    name: nginx
+    state: restarted
 
 - name: stop apache2
-  shell: service apache2 stop
+  service:
+    name: apache2
+    state: stopped
