@@ -96,13 +96,14 @@
           actual: "DB_PASSWORD={{ FireflyPassword }}"
 
     - name: Make sure pymysql is present
-      become: true # needed if the other tasks are not played as root
+      become: true
       pip:
         name: pymysql
         state: present
 
     - name: Create new database for firefly
       community.mysql.mysql_db:
+        login_unix_socket: /var/run/mysqld/mysqld.sock
         check_implicit_admin: yes
         login_user: "{{ FireflyUsernameDefault }}"
         login_password: "{{ FireflyPasswordDefault }}"
@@ -112,6 +113,7 @@
 
     - name: Configure MySQL for the new user
       community.mysql.mysql_user:
+        login_unix_socket: /var/run/mysqld/mysqld.sock
         check_implicit_admin: yes
         login_user: "{{ FireflyUsernameDefault }}"
         login_password: "{{ FireflyPasswordDefault }}"
@@ -132,6 +134,20 @@
       notify:
         - restart nginx
         - restart php-fpm
+
+    - name: Assign correct owner to firefly-iii directory
+      ansible.builtin.file:
+        path: "{{ firefly_install_path }}/firefly-iii"
+        state: directory
+        recurse: yes
+        owner: www-data
+        group: www-data
+
+    - name: Give write permissions to firefly-iii/storage directory
+      ansible.builtin.file:
+        path: "{{ firefly_install_path }}/firefly-iii/storage"
+        mode: '775'
+        recurse: yes
 
     - name: Backfill previous data
       include: backfill.yml

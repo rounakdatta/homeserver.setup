@@ -7,7 +7,7 @@
 
 - name: Restore database from backup
   community.mysql.mysql_db:
-    check_implicit_admin: yes
+    login_unix_socket: /var/run/mysqld/mysqld.sock
     login_user: "{{ FireflyUsernameDefault }}"
     login_password: "{{ FireflyPasswordDefault }}"
     name: firefly
