@@ -16,3 +16,6 @@
     - role: setup-firefly
       tags:
         - personal
+    - role: setup-ainv
+      tags:
+        - asslpl

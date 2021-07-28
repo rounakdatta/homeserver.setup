@@ -1,0 +1,26 @@
+---
+
+- name: Update apt cache
+  apt:
+    update_cache: yes
+
+- name: Install Go compiler
+  apt:
+    pkg:
+    - golang-go
+    state: present
+
+- name: Get source code
+  git:
+    repo: https://github.com/rounakdatta/ainv-backend-go.git
+    dest: "~/ainv/{{ Environment }}"
+
+- name: Put environment variables
+  template:
+    src: godotenv.j2
+    dest: "~/ainv/{{ Environment }}/.env"
+
+- name: Install dependencies and run
+  shell: "tmux new -d -s 'ainv-{{ Environment }}' 'go mod download && go run src/ainv/ainv.go ainv-{{ Environment }} {{ AppPort }}'"
+  args:
+    chdir: "~/ainv/{{ Environment }}"

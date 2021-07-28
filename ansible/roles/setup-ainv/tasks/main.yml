@@ -1,0 +1,94 @@
+---
+
+- name: Create new databases and a dedicated user
+  vars:
+    UsernameDefault: "{{ lookup('community.general.passwordstore', 'firefly' + '/DB_USERNAME_DEFAULT', errors='ignore') }}"
+    PasswordDefault: "{{ lookup('community.general.passwordstore', 'firefly' + '/DB_PASSWORD_DEFAULT', errors='ignore') }}"
+    AinvUsername: "{{ lookup('community.general.passwordstore', 'ainv' + '/USER', errors='ignore') }}"
+    AinvPassword: "{{ lookup('community.general.passwordstore', 'ainv' + '/PASSWORD', errors='ignore') }}"
+
+  block:
+    - name: Create new database for ainv dev
+      vars:
+        NewDatabase: "{{ lookup('community.general.passwordstore', 'ainv' + '/DEV/DB', errors='ignore') }}"
+      community.mysql.mysql_db:
+        login_unix_socket: /var/run/mysqld/mysqld.sock
+        check_implicit_admin: yes
+        login_user: "{{ UsernameDefault }}"
+        login_password: "{{ PasswordDefault }}"
+        name:
+          - "{{ NewDatabase }}"
+        state: present
+
+    - name: Create new database for ainv prod
+      vars:
+        NewDatabase: "{{ lookup('community.general.passwordstore', 'ainv' + '/PROD/DB', errors='ignore') }}"
+      community.mysql.mysql_db:
+        login_unix_socket: /var/run/mysqld/mysqld.sock
+        check_implicit_admin: yes
+        login_user: "{{ UsernameDefault }}"
+        login_password: "{{ PasswordDefault }}"
+        name:
+          - "{{ NewDatabase }}"
+        state: present
+
+    - name: Configure MySQL for the new user
+      community.mysql.mysql_user:
+        login_unix_socket: /var/run/mysqld/mysqld.sock
+        check_implicit_admin: yes
+        login_user: "{{ UsernameDefault }}"
+        login_password: "{{ PasswordDefault }}"
+        state: present
+        name: "{{ AinvUsername }}"
+        password: "{{ AinvPassword }}"
+        priv:
+          "asslpl-im-dev.*": "ALL,GRANT"
+          "asslpl-im.*": "ALL,GRANT"
+
+- name: Backfill existing data to database
+  vars:
+    UsernameDefault: "{{ lookup('community.general.passwordstore', 'firefly' + '/DB_USERNAME_DEFAULT', errors='ignore') }}"
+    PasswordDefault: "{{ lookup('community.general.passwordstore', 'firefly' + '/DB_PASSWORD_DEFAULT', errors='ignore') }}"
+    DevDatabase: "{{ lookup('community.general.passwordstore', 'ainv' + '/DEV/DB', errors='ignore') }}"
+    ProdDatabase: "{{ lookup('community.general.passwordstore', 'ainv' + '/PROD/DB', errors='ignore') }}"
+  block:
+    - name: Copy from local to remote host
+      ansible.builtin.copy:
+        src: "/tmp/backup.sql"
+        dest: "/tmp/backup.sql"
+
+    - name: Restore dev database from backup
+      community.mysql.mysql_db:
+        login_unix_socket: /var/run/mysqld/mysqld.sock
+        login_user: "{{ UsernameDefault }}"
+        login_password: "{{ PasswordDefault }}"
+        name: "{{ DevDatabase }}"
+        state: import
+        target: "/tmp/backup.sql"
+
+    - name: Restore prod database from backup
+      community.mysql.mysql_db:
+        login_unix_socket: /var/run/mysqld/mysqld.sock
+        login_user: "{{ UsernameDefault }}"
+        login_password: "{{ PasswordDefault }}"
+        name: "{{ ProdDatabase }}"
+        state: import
+        target: "/tmp/backup.sql"
+
+- name: Set up ainv dev
+  vars: 
+    AppUser: "{{ lookup('community.general.passwordstore', 'ainv' + '/USER', errors='ignore') }}"
+    AppPassword: "{{ lookup('community.general.passwordstore', 'ainv' + '/PASSWORD', errors='ignore') }}"
+    AppDatabase: "{{ lookup('community.general.passwordstore', 'ainv' + '/DEV/DB', errors='ignore') }}"
+    Environment: "dev"
+    AppPort: "1235"
+  include: ainv.yml
+
+- name: Set up ainv prod
+  vars: 
+    AppUser: "{{ lookup('community.general.passwordstore', 'ainv' + '/USER', errors='ignore') }}"
+    AppPassword: "{{ lookup('community.general.passwordstore', 'ainv' + '/PASSWORD', errors='ignore') }}"
+    AppDatabase: "{{ lookup('community.general.passwordstore', 'ainv' + '/PROD/DB', errors='ignore') }}"
+    Environment: "prod"
+    AppPort: "1234"
+  include: ainv.yml
