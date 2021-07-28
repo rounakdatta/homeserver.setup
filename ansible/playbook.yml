@@ -19,3 +19,6 @@
     - role: setup-ainv
       tags:
         - asslpl
+    - role: setup-nginx
+      tags:
+        - personal

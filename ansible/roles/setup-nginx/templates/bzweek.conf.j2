@@ -1,0 +1,65 @@
+server {
+        listen  80;
+
+        absolute_redirect off;
+
+        {% if DomainName is defined and DomainName != "" %} server_name {{ DomainName }}; {% endif %}
+
+        root    /var/www/default;
+
+        index index.php index.html;
+
+	port_in_redirect        off;
+
+	location /ainv-prod {
+		proxy_pass http://localhost:1234;
+		rewrite ^([^.]*[^/])$ $1/ permanent;
+	}
+
+	location /ainv-dev {
+		proxy_pass http://localhost:1235;
+		rewrite ^([^.]*[^/])$ $1/ permanent;
+	}
+
+
+        location ~ /\.ht {
+                deny all;
+        }
+
+        location ^~ /firefly-iii/ {
+                deny all;
+        }
+
+        location ^~ /money {
+                alias /var/www/html/firefly-iii/public;
+                try_files $uri $uri/ @money;
+
+                location ~* \.php(?:$|/) {
+                        add_header Access-Control-Allow-Origin *;
+                        include snippets/fastcgi-php.conf;
+                        fastcgi_param SCRIPT_FILENAME $request_filename;
+                        fastcgi_param modHeadersAvailable true; #Avoid sending the security headers twice
+                        fastcgi_pass unix:/run/php/php7.4-fpm.sock;
+                }
+        }
+
+        location @money {
+                rewrite ^/money/(.*)$ /money/index.php/$1 last;
+        }
+
+
+        location / {
+                try_files $uri /index.php$is_args$args;
+                autoindex on;
+                sendfile off;
+       }
+
+        location ~ \.php$ {
+                 fastcgi_pass unix:/run/php/php7.4-fpm.sock;
+                 fastcgi_index index.php;
+                 fastcgi_read_timeout 240;
+                 fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+                 include fastcgi_params;
+                 fastcgi_split_path_info ^(.+.php)(/.+)$;
+        }
+}

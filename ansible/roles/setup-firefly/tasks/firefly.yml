@@ -39,18 +39,6 @@
   notify:
     - restart php-fpm
 
-- name: Trash default nginx config
-  shell: "mv {{ nginx_config_path }}/default /tmp/"
-  ignore_errors: true
-
-- name: Generate firefly nginx config
-  template:
-    src: firefly.conf.j2
-    dest: "{{ nginx_config_path }}/firefly.conf"
-  notify:
-    - restart nginx
-    - restart php-fpm
-
 - name: Install composer
   block:
     - name: Obtain setup script

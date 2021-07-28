@@ -1,0 +1,12 @@
+---
+
+- name: Trash default nginx config
+  shell: "mv {{ nginx_config_path }}/default /tmp/"
+  ignore_errors: true
+
+- name: Build nginx config
+  template:
+    src: bzweek.conf.j2
+    dest: "{{ nginx_config_path }}/bzweek.conf"
+  notify:
+    - restart nginx
