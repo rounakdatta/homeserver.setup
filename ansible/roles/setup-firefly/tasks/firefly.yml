@@ -122,10 +122,19 @@
         priv:
           "firefly.*": "ALL,GRANT"
 
-    - name: Housekeeping & migrations
+    - name: Database migrations
+      shell: "php artisan migrate:refresh --seed"
+      register: db_migrations_success
+      until: db_migrations_success is not failed
+      retries: 2
+      delay: 5
+      args:
+        chdir: "{{ firefly_install_path }}/firefly-iii"
+      ignore_errors: true
+
+    - name: Other housekeeping
       shell: "{{ item }}"
       with_items:
-        - "php artisan migrate:refresh --seed"
         - "php artisan firefly-iii:upgrade-database"
         - "php artisan passport:install"
       args:
