@@ -28,6 +28,7 @@
     - mariadb-server
     - mariadb-client
     - nginx
+    - python3-pip
     state: present
 
 - name: Configure PHP per-process memory limit to 512M
@@ -64,19 +65,22 @@
         chdir: /tmp
 
 - name: Install firefly-iii composer image
+  vars: 
+    FireflyHost: "{{ lookup('community.general.passwordstore', 'firefly' + '/DB_HOST', errors='ignore') }}"
+    FireflyDatabase: "firefly"
+    FireflyUsername: "{{ lookup('community.general.passwordstore', 'firefly' + '/DB_USERNAME', errors='ignore') }}"
+    FireflyPassword: "{{ lookup('community.general.passwordstore', 'firefly' + '/DB_PASSWORD', errors='ignore') }}"
+    FireflyUsernameDefault: "{{ lookup('community.general.passwordstore', 'firefly' + '/DB_USERNAME_DEFAULT', errors='ignore') }}"
+    FireflyPasswordDefault: "{{ lookup('community.general.passwordstore', 'firefly' + '/DB_PASSWORD_DEFAULT', errors='ignore') }}"
+
   block:
     - name: Create composer project
-      shell: "composer create-project grumpydictator/firefly-iii --no-dev --prefer-dist firefly-iii 5.5.13"
+      shell: "yes | composer create-project grumpydictator/firefly-iii --no-dev --prefer-dist firefly-iii 5.5.13"
       args:
         chdir: "{{ firefly_install_path }}"
       ignore_errors: true
 
     - name: Set environment variables
-      vars: 
-        FireflyHost: "{{ lookup('community.general.passwordstore', 'firefly' + '/DB_HOST', errors='ignore') }}"
-        FireflyDatabase: "{{ lookup('community.general.passwordstore', 'firefly' + '/DB_DATABASE', errors='ignore') }}"
-        FireflyUsername: "{{ lookup('community.general.passwordstore', 'firefly' + '/DB_USERNAME', errors='ignore') }}"
-        FireflyPassword: "{{ lookup('community.general.passwordstore', 'firefly' + '/DB_PASSWORD', errors='ignore') }}"
       lineinfile:
         dest: "{{ firefly_install_path }}/firefly-iii/.env"
         regexp: "{{ item.regex }}"
@@ -90,6 +94,32 @@
           actual: "DB_USERNAME={{ FireflyUsername }}"
         - regex: "^DB_PASSWORD=.*$"
           actual: "DB_PASSWORD={{ FireflyPassword }}"
+
+    - name: Make sure pymysql is present
+      become: true # needed if the other tasks are not played as root
+      pip:
+        name: pymysql
+        state: present
+
+    - name: Create new database for firefly
+      community.mysql.mysql_db:
+        check_implicit_admin: yes
+        login_user: "{{ FireflyUsernameDefault }}"
+        login_password: "{{ FireflyPasswordDefault }}"
+        name:
+          - "{{ FireflyDatabase }}"
+        state: present
+
+    - name: Configure MySQL for the new user
+      community.mysql.mysql_user:
+        check_implicit_admin: yes
+        login_user: "{{ FireflyUsernameDefault }}"
+        login_password: "{{ FireflyPasswordDefault }}"
+        state: present
+        name: "{{ FireflyUsername }}"
+        password: "{{ FireflyPassword }}"
+        priv:
+          "firefly.*": "ALL,GRANT"
 
     - name: Housekeeping & migrations
       shell: "{{ item }}"
