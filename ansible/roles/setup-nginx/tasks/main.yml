@@ -12,3 +12,13 @@
     dest: "{{ nginx_config_path }}/bzweek.conf"
   notify:
     - restart nginx
+
+- name: Configure nginx HTTPS through certbot
+  expect:
+    command: certbot
+    responses:
+      (.*)activate HTTPS for(.*): "\n"
+      (.*)reinstall this existing certificate(.*): "1"
+      (.*)Make all requests redirect to secure HTTPS(.*): "2"
+  notify:
+    - restart nginx

@@ -26,13 +26,13 @@
     - role: setup-ainv
       tags:
         - asslpl
-    - role: setup-nginx
-      tags:
-        - personal
     - role: coopdevs.certbot_nginx
       vars:
         domain_name: bzweek.taptappers.club
         letsencrypt_email: rounakdatta12@gmail.com
         certbot_force_update: false
+      tags:
+        - personal
+    - role: setup-nginx
       tags:
         - personal

@@ -36,3 +36,7 @@
         tag: "issue"
         flags: 0
         oauth_token: "{{ DigitalOceanToken }}"
+
+    - name: Reminder to the user to update the ssh configuration for the newly created droplet
+      pause:
+        prompt: "Please create a new SSH config entry for IP address '{{ droplet_create_status.data.ip_address }}' with HostName 'bzweek', and hit Enter to continue"
