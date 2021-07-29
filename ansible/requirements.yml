@@ -1,5 +1,10 @@
 ---
 
+roles:
+- name: coopdevs.certbot_nginx
+  src: https://github.com/coopdevs/certbot_nginx.git
+  version: origin/master
+
 collections:
 - name: community.mysql
 - name: ansible.posix

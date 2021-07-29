@@ -1,5 +1,12 @@
 ---
 
+- name: Set up DigitalOcean infrastructure
+  hosts: local
+  roles:
+    - role: setup-infra
+      tags:
+        - personal
+
 - name: Set up pre-prequisites
   hosts: local
   roles:
@@ -8,7 +15,7 @@
         - backup
         - personal
 
-- name: Set up firefly on bzweek
+- name: Set up services on bzweek
   hosts: bzweek-root
   vars_files:
           - config.yml
@@ -20,5 +27,12 @@
       tags:
         - asslpl
     - role: setup-nginx
+      tags:
+        - personal
+    - role: coopdevs.certbot_nginx
+      vars:
+        domain_name: bzweek.taptappers.club
+        letsencrypt_email: rounakdatta12@gmail.com
+        certbot_force_update: false
       tags:
         - personal

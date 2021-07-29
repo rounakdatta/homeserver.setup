@@ -5,6 +5,8 @@
   ignore_errors: true
 
 - name: Build nginx config
+  vars: 
+    DomainName: "{{ lookup('community.general.passwordstore', 'digitalocean' + '/domains/ttc/bzweek', errors='ignore') }}"
   template:
     src: bzweek.conf.j2
     dest: "{{ nginx_config_path }}/bzweek.conf"
