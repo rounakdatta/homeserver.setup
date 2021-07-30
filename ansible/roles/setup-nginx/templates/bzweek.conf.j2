@@ -5,7 +5,7 @@ server {
 
         {% if DomainName is defined and DomainName != "" %} server_name {{ DomainName }}; {% endif %}
 
-        root    /var/www/default;
+        root    /var/www/html;
 
         index index.php index.html;
 
@@ -47,6 +47,11 @@ server {
                 rewrite ^/money/(.*)$ /money/index.php/$1 last;
         }
 
+        location /phpmyadmin {
+                try_files $uri /index.php$is_args$args;
+                autoindex on;
+                sendfile off;
+       }
 
         location / {
                 try_files $uri /index.php$is_args$args;

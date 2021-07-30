@@ -5,15 +5,17 @@
   roles:
     - role: setup-infra
       tags:
-        - personal
+        - infra
+        - digitalocean
 
 - name: Set up pre-prequisites
   hosts: local
   roles:
     - role: prepare-local
       tags:
-        - backup
+        - restore
         - personal
+        - asslpl
 
 - name: Set up services on bzweek
   hosts: bzweek-root
@@ -23,16 +25,24 @@
     - role: setup-firefly
       tags:
         - personal
+        - finance
+
     - role: setup-ainv
       tags:
         - asslpl
+
     - role: coopdevs.certbot_nginx
       vars:
         domain_name: bzweek.taptappers.club
         letsencrypt_email: rounakdatta12@gmail.com
         certbot_force_update: false
       tags:
-        - personal
+        - security
+
+    - role: setup-phpmyadmin
+      tags:
+        - asslpl
+
     - role: setup-nginx
       tags:
-        - personal
+        - stitch

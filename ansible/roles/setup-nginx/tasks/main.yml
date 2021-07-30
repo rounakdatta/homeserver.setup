@@ -11,6 +11,7 @@
     src: bzweek.conf.j2
     dest: "{{ nginx_config_path }}/bzweek.conf"
   notify:
+    - restart php-fpm
     - restart nginx
 
 - name: Configure nginx HTTPS through certbot

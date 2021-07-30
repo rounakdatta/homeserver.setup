@@ -1,0 +1,17 @@
+---
+
+- name: Update apt cache
+  apt:
+    update_cache: yes
+
+- name: Install phpmyadmin
+  apt:
+    pkg:
+    - phpmyadmin
+    state: present
+
+- name: Set symlink for phpmyadmin in the default serving directory
+  file:
+    src: /usr/share/phpmyadmin
+    dest: /var/www/html
+    state: link
