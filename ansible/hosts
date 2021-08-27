@@ -1,8 +1,8 @@
 [local]
 localhost ansible_connection=local
 
-[bzweek-root]
-bzweek
+[homeserver.setup-root]
+homeserver.setup
 
-[bzweek-root:vars]
+[homeserver.setup-root:vars]
 ansible_ssh_user=root

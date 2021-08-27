@@ -1,13 +1,5 @@
 ---
 
-- name: Set up DigitalOcean infrastructure
-  hosts: local
-  roles:
-    - role: setup-infra
-      tags:
-        - infra
-        - digitalocean
-
 - name: Set up pre-prequisites
   hosts: local
   roles:
@@ -17,7 +9,7 @@
         - personal
         - asslpl
 
-- name: Set up services on bzweek
+- name: Set up services on homeserver
   hosts: bzweek-root
   vars_files:
           - config.yml
