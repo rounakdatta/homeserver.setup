@@ -10,7 +10,7 @@
         - asslpl
 
 - name: Set up services on homeserver
-  hosts: bzweek-root
+  hosts: homeserver-root
   vars_files:
           - config.yml
   roles:
@@ -25,7 +25,7 @@
 
     - role: coopdevs.certbot_nginx
       vars:
-        domain_name: bzweek.taptappers.club
+        domain_name: "{{ lookup('community.general.passwordstore', 'homeserver.setup/secrets/1/do_name', errors='ignore') }}.{{ lookup('community.general.passwordstore', 'homeserver.setup/secrets/1/do_base_domain', errors='ignore') }}"
         letsencrypt_email: rounakdatta12@gmail.com
         certbot_force_update: false
       tags:

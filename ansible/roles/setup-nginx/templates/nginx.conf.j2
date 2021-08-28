@@ -3,7 +3,7 @@ server {
 
         absolute_redirect off;
 
-        {% if DomainName is defined and DomainName != "" %} server_name {{ DomainName }}; {% endif %}
+        {% if BaseDomainName is defined and BaseDomainName != "" and SubDomainName is defined and SubDomainName != "" %} server_name {{ SubDomainName }}.{{ BaseDomainName }}; {% endif %}
 
         root    /var/www/html;
 

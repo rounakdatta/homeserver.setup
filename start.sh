@@ -12,7 +12,7 @@ setup_infra() {
 
     export ssh_host_ip=$(terraform output ssh_ip)
     export ssh_pv_key=$(terraform output ssh_pv_key)
-    export ssh_host_name=homeserver.setup
+    export ssh_host_name=homeserver
 
     echo -e "\nHost ${ssh_host_name}\n\tUser root\n\tIdentityFile ${ssh_pv_key}\n\tHostName ${ssh_host_ip}" >> ~/.ssh/config
 }

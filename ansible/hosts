@@ -1,8 +1,8 @@
 [local]
 localhost ansible_connection=local
 
-[homeserver.setup-root]
-homeserver.setup
+[homeserver-root]
+homeserver
 
-[homeserver.setup-root:vars]
+[homeserver-root:vars]
 ansible_ssh_user=root

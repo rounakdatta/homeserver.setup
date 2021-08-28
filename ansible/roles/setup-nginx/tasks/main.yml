@@ -6,10 +6,11 @@
 
 - name: Build nginx config
   vars: 
-    DomainName: "{{ lookup('community.general.passwordstore', 'digitalocean' + '/domains/ttc/bzweek', errors='ignore') }}"
+    BaseDomainName: "{{ lookup('community.general.passwordstore', 'homeserver.setup/secrets/1/do_base_domain', errors='ignore') }}"
+    SubDomainName: "{{ lookup('community.general.passwordstore', 'homeserver.setup/secrets/1/do_name', errors='ignore') }}"
   template:
-    src: bzweek.conf.j2
-    dest: "{{ nginx_config_path }}/bzweek.conf"
+    src: nginx.conf.j2
+    dest: "{{ nginx_config_path }}/{{ SubDomainName }}.conf"
   notify:
     - restart php-fpm
     - restart nginx
