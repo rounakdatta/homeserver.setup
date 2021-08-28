@@ -10,8 +10,8 @@ setup_infra() {
     terraform -chdir=terraform plan
     terraform -chdir=terraform apply
 
-    export ssh_host_ip=$(terraform output ssh_ip)
-    export ssh_pv_key=$(terraform output ssh_pv_key)
+    export ssh_host_ip=$(terraform -chdir=terraform output ssh_ip)
+    export ssh_pv_key=$(pass ls homeserver.setup/secrets/1/do_pv_key)
     export ssh_host_name=homeserver
 
     echo -e "\nHost ${ssh_host_name}\n\tUser root\n\tIdentityFile ${ssh_pv_key}\n\tHostName ${ssh_host_ip}" >> ~/.ssh/config

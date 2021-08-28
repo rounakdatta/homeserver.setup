@@ -2,9 +2,8 @@ provider "digitalocean" {
   token = "${var.digitalocean_token}"
 }
 
-resource "digitalocean_ssh_key" "pubs" {
-  name = "personal_pub_key"
-  public_key = file("${var.digitalocean_personal_pub_key}")
+data "digitalocean_ssh_key" "pubs" {
+  name = "personal_homeserver"
 }
 
 resource "digitalocean_droplet" "drops" {
@@ -12,7 +11,7 @@ resource "digitalocean_droplet" "drops" {
   size = "s-1vcpu-1gb"
   region = "blr1"
   image = "ubuntu-20-04-x64"
-  ssh_keys = [ "${digitalocean_ssh_key.pubs.id}" ]
+  ssh_keys = [ "${data.digitalocean_ssh_key.pubs.id}" ]
 }
 
 resource "digitalocean_domain" "doms" {
@@ -24,7 +23,7 @@ resource "digitalocean_record" "recssl" {
   domain = "${digitalocean_domain.doms.name}"
   type = "CAA"
   name = "@"
-  value = "letsencrypt.org"
+  value = "letsencrypt.org."
   tag = "issue"
   flags = 0
 }
