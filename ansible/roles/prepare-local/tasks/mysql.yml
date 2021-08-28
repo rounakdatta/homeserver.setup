@@ -1,8 +1,6 @@
 ---
 
 - name: Fetch backup from backblaze archive to local
-  vars:
-    HostName: "{{ lookup('community.general.passwordstore', 'homeserver.setup/secrets/1/do_name', errors='ignore') }}"
-  shell: "rclone copy $(pass backblaze/name):$(pass backblaze/bucket)/backup/{{ HostName }}/mysql/backup.sql /tmp/"
+  shell: "rclone copy $(pass backblaze/name):$(pass backblaze/bucket)/backup/homeserver/mysql/backup.sql /tmp/"
   args:
     executable: /bin/bash
