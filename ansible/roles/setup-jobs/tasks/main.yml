@@ -8,6 +8,11 @@
     Bucket: "{{ lookup('community.general.passwordstore', 'backblaze' + '/bucket', errors='ignore') }}"
     HostName: "{{ lookup('community.general.passwordstore', 'homeserver.setup/secrets/1/do_name', errors='ignore') }}"
   block:
+    - name: Create rclone config directory
+      file:
+        path: "~/.config/rclone"
+        state: directory
+
     - name: Build rclone config
       template:
         src: rclone.conf.j2
@@ -24,4 +29,4 @@
         name: "backup_all_databases_to_b2"
         minute: "30"
         hour: "3,13"
-        job: "mysqldump -u root --all-databases > backup.sql && rclone copy backup.sql {{ Name }}:{{ Bucket }}/backup/{{ HostName }}/mysql"
+        job: "mysqldump -u root --all-databases > backup.sql && rclone copy backup.sql {{ Name }}:{{ Bucket }}/backup/homeserver/mysql"
