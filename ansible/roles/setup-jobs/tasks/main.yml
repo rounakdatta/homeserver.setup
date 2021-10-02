@@ -6,7 +6,6 @@
     Account: "{{ lookup('community.general.passwordstore', 'backblaze' + '/account', errors='ignore') }}"
     Key: "{{ lookup('community.general.passwordstore', 'backblaze' + '/key', errors='ignore') }}"
     Bucket: "{{ lookup('community.general.passwordstore', 'backblaze' + '/bucket', errors='ignore') }}"
-    HostName: "{{ lookup('community.general.passwordstore', 'homeserver.setup/secrets/1/do_name', errors='ignore') }}"
   block:
     - name: Create rclone config directory
       file:
