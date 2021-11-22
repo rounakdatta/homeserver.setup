@@ -23,6 +23,11 @@
       tags:
         - asslpl
 
+    - role: setup-vikunja
+      tags:
+        - personal
+        - productivity
+
     - role: coopdevs.certbot_nginx
       vars:
         domain_name: "{{ lookup('community.general.passwordstore', 'homeserver.setup/secrets/1/do_name', errors='ignore') }}.{{ lookup('community.general.passwordstore', 'homeserver.setup/secrets/1/do_base_domain', errors='ignore') }}"

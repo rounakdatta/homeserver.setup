@@ -1,0 +1,36 @@
+---
+
+- name: Create directory
+  file:
+    path: "~/.config/vikunja"
+    state: directory
+
+- name: Build vikunja config
+  vars:
+    VikunjaDatabaseUser: "{{ lookup('community.general.passwordstore', 'vikunja' + '/USER', errors='ignore') }}"
+    VikunjaDatabasePassword: "{{ lookup('community.general.passwordstore', 'vikunja' + '/PASSWORD', errors='ignore') }}"
+    VikunjaDatabaseType: "mysql"
+  template:
+    src: config.yml.j2
+    dest: "~/.config/vikunja/config.yml"
+
+- name: Download the release package
+  get_url:
+    url: "https://dl.vikunja.io/api/0.18.1/vikunja-v0.18.1-linux-amd64-full"
+    dest: "/tmp/vikunja.backend.zip"
+
+- name: Create directory
+  file:
+    path: "~/vikunja"
+    state: directory
+
+- name: Extract the package
+  ansible.builtin.unarchive:
+    src: "/tmp/vikunja.backend.zip"
+    dest: "~/vikunja"
+    remote_src: yes
+
+- name: Install dependencies and run
+  shell: "tmux new -d -s 'vikunja-backend' './vikunja-v0.18.1-linux-amd64'"
+  args:
+    chdir: "~/vikunja"

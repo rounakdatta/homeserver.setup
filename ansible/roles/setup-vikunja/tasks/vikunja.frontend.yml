@@ -1,0 +1,17 @@
+---
+
+- name: Download the release package
+  get_url:
+    url: "https://dl.vikunja.io/frontend/vikunja-frontend-0.18.1.zip"
+    dest: "/tmp/vikunja.frontend.zip"
+
+- name: Create directory
+  file:
+    path: "/var/www/html/vikunja"
+    state: directory
+
+- name: Extract the package
+  ansible.builtin.unarchive:
+    src: "/tmp/vikunja.frontend.zip"
+    dest: "/var/www/html/vikunja"
+    remote_src: yes
