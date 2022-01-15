@@ -29,3 +29,10 @@
         minute: "30"
         hour: "3,13"
         job: "mysqldump -u root --all-databases > backup.sql && rclone copy backup.sql {{ Name }}:{{ Bucket }}/backup/homeserver/mysql"
+
+    - name: Start vikunja files backup cron job
+      ansible.builtin.cron:
+        name: "backup_vikunja_files_to_b2"
+        minute: "45"
+        hour: "3,13"
+        job: "rclone copy ~/vikunja/files {{ Name }}:{{ Bucket }}/backup/homeserver/vikunja/files"
