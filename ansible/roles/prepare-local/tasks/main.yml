@@ -2,3 +2,6 @@
 
 - name: Prepare MySQL backup
   include: mysql.yml
+
+- name: Prepare MySQL backup
+  include: files.yml

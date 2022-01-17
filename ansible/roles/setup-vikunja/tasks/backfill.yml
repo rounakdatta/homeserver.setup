@@ -8,4 +8,4 @@
 - name: Copy all files from local to remote host
   ansible.builtin.copy:
     src: "/tmp/vikunja/files"
-    dest: "~/vikunja/files"
+    dest: "~/vikunja"
