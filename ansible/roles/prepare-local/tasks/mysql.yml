@@ -1,6 +1,6 @@
 ---
 
-- name: Fetch backup from backblaze archive to local
+- name: Fetch database backup from backblaze archive to local
   shell: "rclone copy $(pass backblaze/name):$(pass backblaze/bucket)/backup/homeserver/mysql/backup.sql /tmp/"
   args:
     executable: /bin/bash

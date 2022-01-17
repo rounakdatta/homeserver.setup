@@ -1,0 +1,67 @@
+---
+
+- name: Create new databases and a dedicated user
+  vars:
+    UsernameDefault: "{{ lookup('community.general.passwordstore', 'firefly' + '/DB_USERNAME_DEFAULT', errors='ignore') }}"
+    PasswordDefault: "{{ lookup('community.general.passwordstore', 'firefly' + '/DB_PASSWORD_DEFAULT', errors='ignore') }}"
+    VikunjaDatabaseUser: "{{ lookup('community.general.passwordstore', 'vikunja' + '/USER', errors='ignore') }}"
+    VikunjaDatabasePassword: "{{ lookup('community.general.passwordstore', 'vikunja' + '/PASSWORD', errors='ignore') }}"
+
+  block:
+    - name: Create new database for vikunja backend
+      vars:
+        NewDatabase: "vikunja"
+      community.mysql.mysql_db:
+        login_unix_socket: /var/run/mysqld/mysqld.sock
+        check_implicit_admin: yes
+        login_user: "{{ UsernameDefault }}"
+        login_password: "{{ PasswordDefault }}"
+        name:
+          - "{{ NewDatabase }}"
+        state: present
+
+    - name: Configure MySQL for the new user
+      community.mysql.mysql_user:
+        login_unix_socket: /var/run/mysqld/mysqld.sock
+        check_implicit_admin: yes
+        login_user: "{{ UsernameDefault }}"
+        login_password: "{{ PasswordDefault }}"
+        state: present
+        name: "{{ VikunjaDatabaseUser }}"
+        password: "{{ VikunjaDatabasePassword }}"
+        priv:
+          "vikunja.*": "ALL,GRANT"
+
+- name: Backfill existing data to database
+  vars:
+    UsernameDefault: "{{ lookup('community.general.passwordstore', 'firefly' + '/DB_USERNAME_DEFAULT', errors='ignore') }}"
+    PasswordDefault: "{{ lookup('community.general.passwordstore', 'firefly' + '/DB_PASSWORD_DEFAULT', errors='ignore') }}"
+  block:
+    - name: Copy from local to remote host
+      ansible.builtin.copy:
+        src: "/tmp/backup.sql"
+        dest: "/tmp/backup.sql"
+
+    - name: Restore dev database from backup
+      community.mysql.mysql_db:
+        login_unix_socket: /var/run/mysqld/mysqld.sock
+        login_user: "{{ UsernameDefault }}"
+        login_password: "{{ PasswordDefault }}"
+        name: "vikunja"
+        state: import
+        target: "/tmp/backup.sql"
+
+- name: Install unzip utility
+  apt:
+    pkg:
+    - unzip
+    state: present
+
+- name: Set up vikunja backend
+  include: vikunja.backend.yml
+
+- name: Set up vikunja frontend
+  include: vikunja.frontend.yml
+
+- name: Backfill previous data
+  include: backfill.yml

@@ -1,3 +1,7 @@
+upstream vkfe {
+        server localhost:3456;
+}
+
 server {
         listen  80;
 
@@ -21,6 +25,31 @@ server {
 		rewrite ^([^.]*[^/])$ $1/ permanent;
 	}
 
+        location /assets/ {
+                alias /var/www/html/vikunja/assets/;
+                try_files $uri $uri/ /;
+        }
+
+        location /images/ {
+                alias /var/www/html/vikunja/images/;
+                try_files $uri $uri/ /;
+        }
+
+
+        location /fonts/ {
+                alias /var/www/html/vikunja/fonts/;
+                try_files $uri $uri/ /;
+        }
+
+        location /api/ {
+                proxy_pass http://vkfe;
+        }
+
+        location /vikunja/ {
+                alias   /var/www/html/vikunja/;
+                try_files $uri $uri/ /;
+                index  index.html index.htm;
+        }
 
         location ~ /\.ht {
                 deny all;
