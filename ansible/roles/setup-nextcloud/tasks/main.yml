@@ -1,0 +1,68 @@
+---
+
+- name: Install essential dependencies
+  apt:
+    pkg:
+    - smbclient
+
+- name: Download the release package
+  get_url:
+    url: "https://download.nextcloud.com/server/releases/nextcloud-23.0.0.zip"
+    dest: "/tmp/nextcloud.zip"
+
+- name: Create the nexcloud directory
+  ansible.builtin.file:
+    path: "{{ nextcloud_install_path }}/nextcloud"
+    state: directory
+    recurse: yes
+
+- name: Extract the package
+  ansible.builtin.unarchive:
+    src: "/tmp/nextcloud.zip"
+    dest: "{{ nextcloud_install_path }}"
+    remote_src: yes
+
+- name: Assign correct owner to nexcloud directory
+  ansible.builtin.file:
+    path: "{{ nextcloud_install_path }}/nextcloud"
+    state: directory
+    recurse: yes
+    owner: www-data
+    group: www-data
+
+- name: Give write permissions to nextcloud directory
+  ansible.builtin.file:
+    path: "{{ nextcloud_install_path }}/nextcloud"
+    mode: '775'
+    recurse: yes
+
+- name: Database migrations for nextcloud
+  vars:
+    NextcloudDatabase: "nextcloud"
+    NextcloudUsername: "{{ lookup('community.general.passwordstore', 'nextcloud' + '/USER', errors='ignore') }}"
+    NextcloudPassword: "{{ lookup('community.general.passwordstore', 'nextcloud' + '/PASSWORD', errors='ignore') }}"
+    FireflyUsernameDefault: "{{ lookup('community.general.passwordstore', 'firefly' + '/DB_USERNAME_DEFAULT', errors='ignore') }}"
+    FireflyPasswordDefault: "{{ lookup('community.general.passwordstore', 'firefly' + '/DB_PASSWORD_DEFAULT', errors='ignore') }}"
+
+  block:
+    - name: Create new database for nextcloud
+      community.mysql.mysql_db:
+        login_unix_socket: /var/run/mysqld/mysqld.sock
+        check_implicit_admin: yes
+        login_user: "{{ FireflyUsernameDefault }}"
+        login_password: "{{ FireflyPasswordDefault }}"
+        name:
+          - "{{ NextcloudDatabase }}"
+        state: present
+
+    - name: Configure MySQL for the new user
+      community.mysql.mysql_user:
+        login_unix_socket: /var/run/mysqld/mysqld.sock
+        check_implicit_admin: yes
+        login_user: "{{ FireflyUsernameDefault }}"
+        login_password: "{{ FireflyPasswordDefault }}"
+        state: present
+        name: "{{ NextcloudUsername }}"
+        password: "{{ NextcloudPassword }}"
+        priv:
+          "nextcloud.*": "ALL,GRANT"

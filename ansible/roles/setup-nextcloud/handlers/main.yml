@@ -1,0 +1,16 @@
+---
+
+- name: restart php-fpm
+  service:
+    name: php7.4-fpm
+    state: restarted
+
+- name: restart nginx
+  service:
+    name: nginx
+    state: restarted
+
+- name: stop apache2
+  service:
+    name: apache2
+    state: stopped
