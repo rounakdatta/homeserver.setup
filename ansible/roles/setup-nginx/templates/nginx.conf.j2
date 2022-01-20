@@ -96,4 +96,68 @@ server {
                  include fastcgi_params;
                  fastcgi_split_path_info ^(.+.php)(/.+)$;
         }
+
+        location ^~ /nextcloud {
+
+                client_max_body_size 512M;
+                fastcgi_buffers 8 4K;
+                fastcgi_ignore_headers X-Accel-Buffering;
+
+                gzip off;
+
+                error_page 403 /nextcloud/core/templates/403.php;
+                error_page 404 /nextcloud/core/templates/404.php;
+
+                location /nextcloud {
+                        rewrite ^ /nextcloud/index.php$uri;
+                }
+
+                location ~ ^/nextcloud/(?:build|tests|config|lib|3rdparty|templates|changelog|data)/ {
+                        return 404;
+                }
+                location ~ ^/nextcloud/(?:\.|autotest|occ|issue|indie|db_|console|core/skeleton/) {
+                        return 404;
+                }
+                location ~ ^/nextcloud/core/signature\.json {
+                        return 404;
+                }
+
+                location ~ ^/nextcloud/(?:index|remote|public|cron|core/ajax/update|status|ocs/v[12]|updater/.+|oc[sm]-provider/.+|core/templates/40[34])\.php(?:$|/) {
+                        fastcgi_split_path_info ^(.+\.php)(/.*)$;
+                        include fastcgi_params;
+                        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+                        fastcgi_param SCRIPT_NAME $fastcgi_script_name;
+                        fastcgi_param PATH_INFO $fastcgi_path_info;
+                        fastcgi_param modHeadersAvailable true;
+                        fastcgi_read_timeout 180;
+                        fastcgi_pass unix:/run/php/php7.4-fpm.sock;
+                        fastcgi_intercept_errors on;
+                        fastcgi_request_buffering off;
+                }
+
+                location ~ ^/nextcloud/(?:updater|oc[sm]-provider)(?:$|/) {
+                        try_files $uri $uri/ =404;
+                        index index.php;
+                }
+
+                # Adding the cache control header for js and css files
+                # Make sure it is BELOW the PHP block
+                location ~ /nextcloud/.*\.(?:css|js) {
+                        try_files $uri /nextcloud/index.php$uri$is_args$args;
+                        add_header Cache-Control "max-age=15778463" always;
+                        add_header X-Content-Type-Options "nosniff" always;
+                        add_header X-Frame-Options "SAMEORIGIN" always;
+                        add_header X-XSS-Protection "1; mode=block" always;
+                        add_header X-Robots-Tag "none" always;
+                        add_header X-Download-Options "noopen" always;
+                        add_header X-Permitted-Cross-Domain-Policies "none" always;
+                        access_log off;
+                }
+
+                location ~ /nextcloud/.*\.(?:svg|gif|png|html|ttf|woff|ico|jpg|jpeg|map|json) {
+                        try_files $uri /nextcloud/index.php$uri$is_args$args;
+                        add_header Cache-Control "public, max-age=7200" always;
+                        access_log off;
+                }
+        }
 }
